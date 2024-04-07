@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"strings"
 	"xmpp/internal/client"
 )
 
@@ -58,15 +59,23 @@ func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 
+	fmt.Println("Type your message (format: <to> <text>)")
+
 	go func() {
 		for {
-			fmt.Print("receiver > ")
 			scanner.Scan()
-			to := scanner.Text()
+			row := scanner.Text()
 
-			fmt.Print("> ")
-			scanner.Scan()
-			text := scanner.Text()
+			txt := strings.SplitN(row, " ", 2)
+
+			if len(txt) != 2 {
+				log.Println("invalid message format")
+				continue
+			}
+
+			to := txt[0]
+			text := txt[1]
+
 			if err := c.Send(to, text); err != nil {
 				log.Fatal(err)
 			}

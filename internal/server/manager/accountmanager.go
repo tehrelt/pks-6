@@ -78,3 +78,12 @@ func (m *AccountManager) Online() []*Account {
 
 	return online
 }
+
+func (m *AccountManager) Close(conn net.Conn) {
+	for _, acc := range m.accounts {
+		if acc.Conn == conn {
+			m.Logout(acc.Username)
+			return
+		}
+	}
+}

@@ -32,7 +32,7 @@ func New(host string, port int, options *Options) (*Server, error) {
 	}
 
 	if options.Verbose == false {
-		options.logger = slog.New(slog.NewTextHandler(io.Discard, &slog.HandlerOptions{Level: slog.LevelInfo}))
+		options.logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	} else {
 		options.logger = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
 	}
@@ -77,7 +77,9 @@ func (s *Server) handleConnection(conn net.Conn) {
 				s.logger.Info("Connection closed", slog.String("incaddr", conn.RemoteAddr().String()))
 				return
 			}
-			fmt.Println("error reading from connection:", err.Error())
+			s.logger.Error("error reading from connection:", slog.String("error", err.Error()))
+			s.manager.Close(conn)
+
 			return
 		}
 
@@ -177,7 +179,7 @@ func (s *Server) handleSendPacket(ctx context.Context, bytes []byte) {
 			return
 		}
 
-		s.logger.Debug(fmt.Sprintf("sending message to %s", acc.Username))
+		s.logger.Debug(fmt.Sprintf("sending message to %s(%s)", acc.Username, acc.RemoteAddr()))
 		_, err = acc.Write(packets.MarshalReceivePacket(recvPacket))
 		if err != nil {
 			s.logger.Error("error sending message:", err.Error())

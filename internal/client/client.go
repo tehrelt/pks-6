@@ -63,15 +63,10 @@ func (c *Client) Auth() error {
 }
 
 func (c *Client) Send(to string, text string) error {
-
 	p := packets.NewSendPacket(c.username, to, text)
-
 	if _, err := c.Write(packets.MarshalSendPacket(p)); err != nil {
 		return err
 	}
-
-	fmt.Printf("sent to %s\n", p.To)
-
 	return nil
 }
 
@@ -95,13 +90,12 @@ func (c *Client) readMessages() {
 			p := packets.UnmarshalReceivePacket(buf)
 			m := message.NewMessage(c.username, p.From, string(p.Data))
 			fmt.Printf("%s: %s\n", m.From, m.Text)
-			return
+			continue
 		}
 
 		if t == packets.PACKET_ERROR {
 			p := packets.UnmarshalErrorPacket(buf)
 			fmt.Println("ERROR: ", p.Error)
-			return
 		}
 	}
 }
